@@ -1,0 +1,28 @@
+{
+  "name": "js13k-2018-offline-spartanatreyu",
+  "version": "0.0.1",
+  "description": "An entry for the 2018 Js13kGames game-jam/hackathon following the theme \"Offline\" by spartanatreyu.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spartanatreyu/js13k-2018-offline.git"
+  },
+  "keywords": [
+    "Js13k",
+    "Js13kGames"
+  ],
+  "author": "spartanatreyu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spartanatreyu/js13k-2018-offline/issues"
+  },
+  "homepage": "https://github.com/spartanatreyu/js13k-2018-offline#readme",
+  "devDependencies": {
+    "browser-sync": "^2.24.6",
+    "del": "^3.0.0",
+    "gulp": "github:gulpjs/gulp#4.0"
+  }
+}
