@@ -18,34 +18,49 @@ function entity(entityType, x, y, width, height)
 	this.entityType = entityType; //float, draggable
 	this.x = x || 0;
 	this.y = y || 0;
+	this.dx = 0;
+	this.dy = 0;
+	this.prevX = this.x;
+	this.prevY = this.y;
 	this.width = width || 50;
 	this.height = height || 50;
+	this.color = [Math.random() * 255, Math.random() * 255, Math.random() * 255];
 	gameObjects.push(this);
 	window.console.log('entity added to game at: ' + this.x + ', ' + this.y);
+	if(entityType === 'float')
+	{
+		this.dx = Math.random() - 0.5;
+		this.dy = Math.random() - 0.5;
+	}
 
 	this.step = function(dt)
 	{
-		switch (this.entityType) {
-			case 'draggable':
-				if (this.isHeld === true)
-				{
-					this.x = this.dragX;
-					this.y = this.dragY;
-				}
-				break;
-			case 'float':
-			default:
-				//float right and wrap left
-				this.x += 0.25 * dt;
-				if (this.x > 800)
-				{
-					this.x = -50;
-				}
-				break;
+		switch (this.entityType)
+		{
+		case 'draggable':
+			if (this.isHeld === true)
+			{
+				this.prevX = this.x;
+				this.prevY = this.y;
+				this.dx = (this.dragX - this.x) * 0.01;
+				this.dy = (this.dragY - this.y) * 0.01;
+			}
+			gravity(this);
+			lockToLevel(this);
+			break;
+		case 'float':
+		default:
+			wrapAroundLevel(this);
+			break;
 		}
+		this.prevX = this.x;
+		this.prevY = this.y;
+		this.x += this.dx * dt;
+		this.y += this.dy * dt;
 	};
 	this.draw = function(dt)
 	{
+		ctx.fillStyle = 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
 		ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
 	};
 }
@@ -103,7 +118,7 @@ function mousedown(e)
 				currentObject.isHeld = true;
 				currentObject.dragX = e.offsetX;
 				currentObject.dragY = e.offsetY;
-				window.console.log('Entity: ' + objectSelected + 'is draggable.');
+				window.console.log('Entity: "' + objectSelected + '" is draggable.');
 				
 				//When a match is found, stop searching the loop so we only have one object selected
 				break;
@@ -135,9 +150,9 @@ function mouseup(e)
 
 //create some game objects
 new entity('float',      50, 100, 30, 30);
-new entity('draggable', 300, 300, 50, 50);
 new entity('float',     400, 500, 30, 30);
 new entity('float',     500, 550, 30, 30);
+const wirePart1 = new entity('draggable', 300, 300, 50, 50);
 
 //kick off the update loop now
 window.requestAnimationFrame(update);

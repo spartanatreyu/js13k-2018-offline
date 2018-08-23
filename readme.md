@@ -19,7 +19,7 @@ If the time meter fills up, the day is considered over and the next day begins w
   - [x] engine.js (canvas, game loop, input) ~1.5kb
   - [ ] utility.js (randomness functions, other repeated functions...) ~0.5kb
   - [ ] graphics.js (detailed draw commands for all game objects) ~2kb
-  - [ ] physics.js (rope physics, gravity) ~1kb
+  - [-] physics.js (rope physics, gravity) ~1kb
   - [ ] gameplay.js (incoming calls, satisfaction meter, day counter and difficulty) ~3kb
   - [ ] audio.js (audio / music engine, sounds and songs) ~5kb
 
