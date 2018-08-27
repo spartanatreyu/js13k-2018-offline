@@ -25,7 +25,7 @@ function entity(entityType, x, y, width, height)
 	this.width = width || 50;
 	this.height = height || 50;
 	this.color = [Math.random() * 255, Math.random() * 255, Math.random() * 255];
-	gameObjects.push(this);
+	this.reference = gameObjects.push(this) - 1;
 	window.console.log('entity added to game at: ' + this.x + ', ' + this.y);
 	if(entityType === 'float')
 	{
@@ -48,6 +48,26 @@ function entity(entityType, x, y, width, height)
 			gravity(this);
 			lockToLevel(this);
 			break;
+		case 'placeable':
+			if (this.isHeld === true)
+			{
+				this.prevX = this.x;
+				this.prevY = this.y;
+				this.dx = (this.dragX - this.x) * 0.01;
+				this.dy = (this.dragY - this.y) * 0.01;
+			}
+			lockToLevel(this);
+			break;
+		case 'follow':
+			// follow(this, gameObjects[this.following], 0.5, 0.01);
+			follow(this, gameObjects[this.following], 0.1, 0.01);
+			gravity(this, 0.5);
+			lockToLevel(this);
+			break;
+		case 'chain':
+			chain(this, gameObjects[this.chainPrevious], gameObjects[this.chainNext], 0.1, 0.01);
+			lockToLevel(this);
+			break;
 		case 'float':
 		default:
 			wrapAroundLevel(this);
@@ -60,9 +80,51 @@ function entity(entityType, x, y, width, height)
 	};
 	this.draw = function(dt)
 	{
-		ctx.fillStyle = 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
-		ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+		ctx.fillStyle   = 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
+		ctx.strokeStyle = 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
+		ctx.lineWidth = 5;
+		
+		if(
+			this.entityType === 'float'
+			|| this.entityType === 'draggable'
+			|| this.entityType === 'follow'
+		)
+		{
+			ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+		}
+		if (this.entityType === 'placeable')
+		{
+			// ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+			ctx.beginPath();
+			ctx.arc(this.x,this.y,this.width/2,0,Math.PI*2);
+			ctx.fill();
+			ctx.closePath();
+		}
+		if (this.following)
+		{
+			// ctx.beginPath()
+		}
+		/*
+		Smooth the paths later using something similar to this method:
+		https://stackoverflow.com/questions/7054272/how-to-draw-smooth-curve-through-n-points-using-javascript-html5-canvas
+		*/
+		if (this.chainNext && this.chainPrevious === undefined)
+		{
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y);
+			let current = this;
+			while(current.chainNext)
+			{
+				current = gameObjects[current.chainNext];
+				ctx.lineTo(	current.x,current.y);
+			}
+			// ctx.lineTo(gameObjects[this.chainNext].x, gameObjects[this.chainNext].y);
+			ctx.stroke();
+			ctx.closePath();
+		}
 	};
+
+	return this.reference;
 }
 
 //the game loop
@@ -90,69 +152,73 @@ function update(timestamp)
 	window.requestAnimationFrame(update);
 }
 
-//input loop
-let mouseHeld = false;
-let objectSelected = null;
-let selectionRadius = 30; // in canvas pixels
-canvas.addEventListener('mousedown',mousedown);
-canvas.addEventListener('mousemove',mousemove);
-canvas.addEventListener('mouseup',mouseup);
-
-function mousedown(e)
+function createRope(x,y, ropeLength)
 {
-	mouseHeld = true;
-	window.console.log('click at: ' + e.offsetX + ', ' + e.offsetY);
-	
-	//when checking for a click, loop through all objects comparing the click location with each object's location.
-	//loop through game objects here
-	for (let loopIterator = 0; loopIterator < gameObjects.length; loopIterator++)
+	window.console.group('creating rope');
+	let ropePiecePrevious = new entity('draggable', x, y, 50, 50);
+	let ropePiece;
+	for (let ropeIterator = 0; ropeIterator < ropeLength; ropeIterator++)
 	{
-		const currentObject = gameObjects[loopIterator];
-		window.console.log('checking '+ loopIterator);
-		if(currentObject.entityType === 'draggable')
+		ropePiece = new entity('follow', x, y, 25, 25);
+		ropePiece.following = ropePiecePrevious.reference;
+		ropePiecePrevious = ropePiece;
+		window.console.log('length '+ropeIterator);
+	}
+	window.console.groupEnd('creating rope');
+}
+
+function createChain(x1,y1,x2,y2,chainLength)
+{
+	window.console.group('creating chain');
+	const chainStart = new entity('placeable', x1, y1, 50, 50);
+	const chainEnd = new entity('placeable', x2, y2, 50, 50);
+	let chainLinkPrevious = chainStart;
+	let chainLink;
+	for (let chainIterator = 0; chainIterator < chainLength; chainIterator++)
+	{
+		window.console.log('link '+chainIterator);
+		//Make the last chain link dragable
+		if(chainIterator === chainLength-1)
 		{
-			if (Math.abs(currentObject.x - e.offsetX) < selectionRadius &&
-				Math.abs(currentObject.y - e.offsetY) < selectionRadius)
-			{
-				objectSelected = loopIterator;
-				currentObject.isHeld = true;
-				currentObject.dragX = e.offsetX;
-				currentObject.dragY = e.offsetY;
-				window.console.log('Entity: "' + objectSelected + '" is draggable.');
-				
-				//When a match is found, stop searching the loop so we only have one object selected
-				break;
-			}
+			chainLink = chainEnd;
 		}
+		//make new chain link
+		else
+		{
+			chainLink = new entity('chain', x1, y1, 25, 25);
+		}
+
+		//link that new chain link to the previous chain link
+		chainLinkPrevious.chainNext = chainLink.reference;
+		chainLink.chainPrevious = chainLinkPrevious.reference;
+		
+		//figure out how much the chain should sag based on chain length
+		chainLink.chainLength = chainLength;
+		chainLink.chainStart = chainStart.reference;
+		chainLink.chainEnd = chainEnd.reference;
+
+		//prepare for next chain link;
+		chainLinkPrevious = chainLink;
 	}
+
+	//make sure references are on the chainStart object since it isn't in the above loop
+	chainStart.chainLength = chainLength;
+	chainStart.chainStart = chainStart.reference;
+	chainStart.chainEnd = chainEnd.reference;
+
+
+	window.console.groupEnd('creating chain');
 }
 
-function mousemove(e)
-{
-	if (mouseHeld === true && objectSelected !== null)
-	{
-		gameObjects[objectSelected].dragX = e.offsetX;
-		gameObjects[objectSelected].dragY = e.offsetY;
-		window.console.log('drag to: ' + e.offsetX + ', ' + e.offsetY);
-	}
-}
-
-function mouseup(e)
-{
-	mouseHeld = false;
-	if(objectSelected !== null)
-	{
-		gameObjects[objectSelected].isHeld = false;
-		objectSelected = null;
-	}
-	window.console.log('drag end at: ' + e.offsetX + ', ' + e.offsetY);
-}
+createRope(300,300,5);
+createChain(300,200,500,200,4);
+window.console.log(gameObjects);
 
 //create some game objects
 new entity('float',      50, 100, 30, 30);
 new entity('float',     400, 500, 30, 30);
 new entity('float',     500, 550, 30, 30);
-const wirePart1 = new entity('draggable', 300, 300, 50, 50);
+new entity('draggable',     200, 200, 50, 50);
 
 //kick off the update loop now
 window.requestAnimationFrame(update);

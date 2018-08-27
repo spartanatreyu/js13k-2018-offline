@@ -1,8 +1,8 @@
 //apply gravity to a game object
-function gravity(gameObject)
+function gravity(gameObject, mass)
 {
 	//gravity
-	gameObject.dy += 0.01;
+	gameObject.dy += mass || 0.01;
 	//add sideways friction when touching the ground
 	if (gameObject.y > 600 - gameObject.height / 2) gameObject.dx *= 0.8;
 }
@@ -25,8 +25,37 @@ function wrapAroundLevel(gameObject)
 	if (gameObject.y < 0  ) gameObject.y = 600;
 }
 
-function follow(gameObject, gameObjectToFollow)
+function follow(gameObject, gameObjectToFollow, elasticity, stiffness)
 {
-	gameObject.dx = (gameObject.x - gameObjectToFollow.x) * 0.01;
-	gameObject.dy = (gameObject.y - gameObjectToFollow.y) * 0.01;
+	gameObject.dx *= elasticity || 0.5; 
+	gameObject.dy *= elasticity || 0.5;
+
+	gameObject.dx += (gameObjectToFollow.x - gameObject.x) * (stiffness || 0.01);
+	gameObject.dy += (gameObjectToFollow.y - gameObject.y) * (stiffness || 0.01);
+}
+
+function chain(gameObject, chainPrevious, chainNext, elasticity, stiffness)
+{
+	gameObject.dx *= elasticity || 0.5;
+	gameObject.dy *= elasticity || 0.5;
+
+	gameObject.dx += ((chainPrevious.x - gameObject.x) + (chainNext.x - gameObject.x)) * (stiffness || 0.01);
+	gameObject.dy += ((chainPrevious.y - gameObject.y) + (chainNext.y - gameObject.y)) * (stiffness || 0.01);
+
+
+	let chainStart = gameObjects[gameObject.chainStart];
+	let chainEnd = gameObjects[gameObject.chainEnd];
+	
+	//find the distance between the two ends of the chain using pythagorean theorem
+	let chainLengthDistance = Math.sqrt(Math.pow(Math.abs(chainStart.x - chainEnd.x), 2) + Math.pow(Math.abs(chainStart.y - chainEnd.y), 2));
+	let chainLengthMaxDistance = chainStart.chainLength * 100; //fine tune this
+
+	//find gravity sag of wire based on distance
+	let sag = 1 - (chainLengthDistance / chainLengthMaxDistance);
+	sag = Math.max(sag,0);
+	sag = Math.min(sag,1);
+	gameObject.dy += sag;
+
+	//add sideways friction when touching the ground
+	if (gameObject.y > 600 - gameObject.height / 2) gameObject.dx *= 0.8;
 }
