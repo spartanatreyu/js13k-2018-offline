@@ -172,6 +172,8 @@ function update(timestamp)
 		currentObject.draw(deltaTime);
 	}
 
+	drawBoard();
+
 	//reset timestamp and queue another frame
 	currentTime = timestamp;
 	window.requestAnimationFrame(update);
@@ -237,13 +239,19 @@ function createChain(x1,y1,x2,y2,chainLength)
 
 createRope(300,300,5);
 createChain(300,200,500,200,4);
-window.console.log(gameObjects);
 
 //create some game objects
 new entity('float',      50, 100, 30, 30);
 new entity('float',     400, 500, 30, 30);
 new entity('float',     500, 550, 30, 30);
 new entity('draggable',     200, 200, 50, 50);
+window.console.log(gameObjects);
+setupBoard();
+nextLevel();
+nextLevel();
+nextLevel();
+nextLevel();
+window.console.log(board);
 
 //kick off the update loop now
 window.requestAnimationFrame(update);
