@@ -1,3 +1,10 @@
+//apply changes in velocity to position
+function applyVelocity(gameObject, dt)
+{
+	gameObject.x += gameObject.dx * dt;
+	gameObject.y += gameObject.dy * dt;
+}
+
 //apply gravity to a game object
 function gravity(gameObject, mass)
 {
@@ -48,7 +55,7 @@ function chain(gameObject, chainPrevious, chainNext, elasticity, stiffness)
 	
 	//find the distance between the two ends of the chain using pythagorean theorem
 	let chainLengthDistance = Math.sqrt(Math.pow(Math.abs(chainStart.x - chainEnd.x), 2) + Math.pow(Math.abs(chainStart.y - chainEnd.y), 2));
-	let chainLengthMaxDistance = chainStart.chainLength * 100; //fine tune this
+	let chainLengthMaxDistance = chainStart.chainLength * chainLengthMultiplier;
 
 	//find gravity sag of wire based on distance
 	let sag = 1 - (chainLengthDistance / chainLengthMaxDistance);

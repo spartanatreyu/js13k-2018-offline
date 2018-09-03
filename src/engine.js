@@ -11,6 +11,7 @@ const ctx = canvas.getContext('2d');
 ctx.fillStyle = 'green';
 const gameObjects = [];
 let currentTime;
+const chainLengthMultiplier = 50;
 
 //the default game object
 function entity(entityType, x, y, width, height)
@@ -42,20 +43,35 @@ function entity(entityType, x, y, width, height)
 			{
 				this.prevX = this.x;
 				this.prevY = this.y;
-				this.dx = (this.dragX - this.x) * 0.01;
-				this.dy = (this.dragY - this.y) * 0.01;
+				this.dx = this.dragX - this.x;
+				this.dy = this.dragY - this.y;
+				// window.console.table([this.dx,this.dy,this.x,this.y,this.dragX,this.dragY]);
 			}
-			gravity(this);
+			else
+			{
+				gravity(this,0.5);
+			}
 			lockToLevel(this);
+			applyVelocity(this, 1);
 			break;
 		case 'placeable':
+			this.prevX = this.x;
+			this.prevY = this.y;
 			if (this.isHeld === true)
 			{
-				this.prevX = this.x;
-				this.prevY = this.y;
-				this.dx = (this.dragX - this.x) * 0.01;
-				this.dy = (this.dragY - this.y) * 0.01;
+				this.dx = this.dragX - this.x;
+				this.dy = this.dragY - this.y;
+				// window.console.table([this.dragX,this.dragY,this.x,this.y, this.dx, this.dy]);
 			}
+			//
+			//
+			//
+			//	IF I JUST ADD A LOT OF PORTS, OR MAKE EACH PLACEABLE SNAP TO THE NEAREST EMPTY PLACEABLE,
+			//	I DON'T HAVE TO WORRY ABOUT GRAVITY ON A DANGLING CORD
+			//
+			//
+			//
+			applyVelocity(this, 1);
 			lockToLevel(this);
 			break;
 		case 'follow':
@@ -63,20 +79,21 @@ function entity(entityType, x, y, width, height)
 			follow(this, gameObjects[this.following], 0.1, 0.01);
 			gravity(this, 0.5);
 			lockToLevel(this);
+			applyVelocity(this, dt);
 			break;
 		case 'chain':
 			chain(this, gameObjects[this.chainPrevious], gameObjects[this.chainNext], 0.1, 0.01);
 			lockToLevel(this);
+			applyVelocity(this, dt);
 			break;
 		case 'float':
 		default:
 			wrapAroundLevel(this);
+			applyVelocity(this, dt);
 			break;
 		}
 		this.prevX = this.x;
 		this.prevY = this.y;
-		this.x += this.dx * dt;
-		this.y += this.dy * dt;
 	};
 	this.draw = function(dt)
 	{
@@ -99,6 +116,14 @@ function entity(entityType, x, y, width, height)
 			ctx.arc(this.x,this.y,this.width/2,0,Math.PI*2);
 			ctx.fill();
 			ctx.closePath();
+			// if(this.chainLength)
+			// {
+			// 	ctx.fillStyle = 'red';
+			// 	ctx.beginPath();
+			// 	ctx.arc(this.x, this.y, this.chainLength * chainLengthMultiplier, 0, Math.PI * 2);
+			// 	ctx.stroke();
+			// 	ctx.closePath();
+			// }
 		}
 		if (this.following)
 		{
