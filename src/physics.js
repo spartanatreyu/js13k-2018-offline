@@ -59,6 +59,7 @@ function chain(gameObject, chainPrevious, chainNext, elasticity, stiffness)
 
 	//find gravity sag of wire based on distance
 	let sag = 1 - (chainLengthDistance / chainLengthMaxDistance);
+	sag *= (sagMultiplierNumerator / chainStart.chainLength);
 	sag = Math.max(sag,0);
 	sag = Math.min(sag,1);
 	gameObject.dy += sag;

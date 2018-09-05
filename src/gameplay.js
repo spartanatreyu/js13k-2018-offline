@@ -36,6 +36,8 @@ function setupBoard()
 
 function drawBoard()
 {
+	ctx.fillStyle = 'white';
+	ctx.strokeStyle = 'white';
 	for (let boardColumns = 0; boardColumns < board.length; boardColumns++)
 	{
 		const boardColumn = board[boardColumns];

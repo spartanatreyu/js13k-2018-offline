@@ -11,7 +11,14 @@ const ctx = canvas.getContext('2d');
 ctx.fillStyle = 'green';
 const gameObjects = [];
 let currentTime;
-const chainLengthMultiplier = 50;
+
+// Chain fine-tuned constants, none of these are based on real physics
+// A chain 6 long will be ~200 pixels apart (35 x 6 = 210px)
+// and sag half as far down when the two ends are together
+const chainLengthMultiplier = 35;
+const chainElasticity = 0.25;
+const chainStiffness = 0.04;
+const sagMultiplierNumerator = 5;
 
 //the default game object
 function entity(entityType, x, y, width, height)
@@ -82,7 +89,7 @@ function entity(entityType, x, y, width, height)
 			applyVelocity(this, dt);
 			break;
 		case 'chain':
-			chain(this, gameObjects[this.chainPrevious], gameObjects[this.chainNext], 0.1, 0.01);
+			chain(this, gameObjects[this.chainPrevious], gameObjects[this.chainNext], chainElasticity, chainStiffness);
 			lockToLevel(this);
 			applyVelocity(this, dt);
 			break;
@@ -99,7 +106,7 @@ function entity(entityType, x, y, width, height)
 	{
 		ctx.fillStyle   = 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
 		ctx.strokeStyle = 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
-		ctx.lineWidth = 5;
+		ctx.lineWidth = 10;
 		
 		if(
 			this.entityType === 'float'
@@ -164,6 +171,8 @@ function update(timestamp)
 
 	ctx.clearRect(0,0,800,600);
 
+	drawBoard();
+
 	//loop through game objects here
 	for (let loopIterator = 0; loopIterator < gameObjects.length; loopIterator++)
 	{
@@ -171,8 +180,6 @@ function update(timestamp)
 		currentObject.step(deltaTime);
 		currentObject.draw(deltaTime);
 	}
-
-	drawBoard();
 
 	//reset timestamp and queue another frame
 	currentTime = timestamp;
@@ -212,6 +219,7 @@ function createChain(x1,y1,x2,y2,chainLength)
 		//make new chain link
 		else
 		{
+			//Todo: space the chain links between the two chain ends using linear interpolation (lerp function in utility.js)
 			chainLink = new entity('chain', x1, y1, 25, 25);
 		}
 
@@ -238,7 +246,8 @@ function createChain(x1,y1,x2,y2,chainLength)
 }
 
 createRope(300,300,5);
-createChain(300,200,500,200,4);
+createChain(300,200,500,200,6);
+createChain(200,100,600,100,12);
 
 //create some game objects
 new entity('float',      50, 100, 30, 30);

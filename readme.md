@@ -15,19 +15,18 @@ If the time meter fills up, the day is considered over and the next day begins w
 ## Todo
 
 - [-] Create the basic file structure and app skeleton
-
   - [x] engine.js (canvas, game loop, input) ~1.5kb
-  - [ ] utility.js (randomness functions, other repeated functions...) ~0.5kb
+  - [-] utility.js (randomness functions, other repeated functions...) ~0.5kb
   - [ ] graphics.js (detailed draw commands for all game objects) ~2kb
   - [-] physics.js (rope physics, gravity) ~1kb
-  - [ ] gameplay.js (incoming calls, satisfaction meter, day counter and difficulty) ~3kb
+  - [-] gameplay.js (incoming calls, satisfaction meter, day counter and difficulty) ~3kb
   - [ ] audio.js (audio / music engine, sounds and songs) ~5kb
-
-- [x] Create a basic engine (game loop, input, drawing)
 - [ ] Create a basic gameplay prototype (connect the call to the correct port)
 - [ ] Update build process to include a file size budget, minification and final packaging automation
-- [ ] Add rope physics to the cords
 - [ ] Add gameplay (satisfaction meter, day counter, increasing difficulty)
+- [ ] Investigate draggables bugging out when dragged beyond chain's limit.
+  - Is it caused by the step/draw function being called mid-input function or vica versa?
+  - If so, will moving latest mouse event variables into global variables and moving all input interaction/physics logic into the step function fix any strange bugs?
 - [ ] Improve graphics
 - [ ] Add sounds (port plug and port unplug sounds, incoming call, speech, angry speech, game over tune, gameplay tune.)
 
@@ -35,3 +34,5 @@ If the time meter fills up, the day is considered over and the next day begins w
 
 - [x] Plan
 - [x] Create a basic build process
+- [x] Create a basic engine (game loop, input, drawing)
+- [x] Add rope physics to the cords
